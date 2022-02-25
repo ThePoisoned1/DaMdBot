@@ -1,6 +1,7 @@
 logs/
 *.db
 .vscode/
+*.sqlite3
 #./conf
 #*conf
 conf/conf-dev.conf
