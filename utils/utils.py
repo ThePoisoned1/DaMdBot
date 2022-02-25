@@ -5,9 +5,17 @@ from datetime import datetime
 import os.path
 import csv
 import sys
+import re
+import cv2
+import requests
+import numpy as np
+from PIL import Image
+import io
+from pprint import pprint
+import struct
 
 
-async def send_embed(ctx, embed, view=None):
+async def send_embed(ctx, embed, view=None, delete_after=None):
     """
     Function that handles the sending of embeds
     -> Takes context and embed to send
@@ -17,20 +25,35 @@ async def send_embed(ctx, embed, view=None):
     If this all fails: https://youtu.be/dQw4w9WgXcQ
     """
     try:
-        msg = await ctx.send(embed=embed, view=view)
+        msg = await ctx.send(embed=embed, view=view, delete_after=delete_after)
         return msg
     except Forbidden:
-        send_msg(ctx, view=view)
+        send_msg(ctx, view=view, delete_after=delete_after)
 
 
-async def send_msg(ctx, msg=None, view=None):
+async def send_img(ctx, fileArray: np.ndarray=None, channel=None,pathToSave='file.png',inPath=None):
+    if fileArray:
+        cv2.imwrite(pathToSave, cv2.cvtColor(fileArray, cv2.COLOR_RGB2BGR))
+    else:
+        pathToSave = inPath
+    if channel:
+        return await channel.send(file=discord.File(pathToSave))
+    else:
+        return await ctx.send(file=discord.File(pathToSave))
+
+
+async def send_msg(ctx, msg=None, view=None,delete_after=None):
     if not msg:
         msg = f"Hey, seems like I can't send any message in {ctx.channel.name} on {ctx.guild.name}"
     try:
-        await ctx.send(msg, view=view)
+        msg = await ctx.send(msg, view=view,delete_after=delete_after)
+        return msg
     except Forbidden:
         await ctx.author.send(msg)
 
+
+async def send_cancel_msg(ctx, msg='Operaction canceled'):
+    await send_msg(ctx, msg=msg)
 
 def errorMsg():
     exc_type, exc_obj, exc_tb = sys.exc_info()
@@ -47,6 +70,11 @@ def successEmbed(title):
         title=title, color=0x00ff00)
 
 
+def info_embed(title):
+    return discord.Embed(
+        title=title, color=discord.Color.blue())
+
+
 def removeMatches(theList, toDelete):
     newList = []
     for item in theList:
@@ -55,11 +83,14 @@ def removeMatches(theList, toDelete):
     return newList
 
 
-async def clearReactions(msg, embed):
-    embed.set_footer(text="Timed Out!")
-    await msg.edit(embed=embed)
-    await msg.clear_reactions()
-
+async def clearReactions(msg, embed,timedOut=True):
+    try:
+        if timedOut:
+            embed.set_footer(text="Timed Out!")
+        await msg.edit(embed=embed)
+        await msg.clear_reactions()
+    except:
+        pass
 
 async def elementsInPages(bot, ctx, elementEmbeds):
     if len(elementEmbeds) == 1:
@@ -88,7 +119,7 @@ async def elementsInPages(bot, ctx, elementEmbeds):
                     reaction.emoji) in msgReactions.keys()
                 and user.id != bot.user.id
                 and reaction.message.id == msg.id
-                and user.id == ctx.author.id 
+                and user.id == ctx.author.id
             )
         except asyncio.TimeoutError:
             embed = elements[msgReactions[emojistr]]
@@ -177,6 +208,7 @@ def parseTime(timeToParse: datetime):
 def getDatetimeFromParsedString(date: str):
     return datetime.strptime(date, '%Y-%m-%d %H:%M:%S')
 
+
 def beautifyDate(datetimeToParse: datetime):
     return datetimeToParse.strftime('%H:%M - %a %d-%b-%Y')
 
@@ -215,6 +247,19 @@ def getBotActivity(activityType: str, msg, url=None):
     return activity
 
 
+def parse_possesive(name):
+    """
+    Returns the name + the posseive 's or '
+    Parameters
+    -----------
+    name : srt
+    """
+    if name[-1].lower() == "s":
+        return name + "\'"
+    else:
+        return name + "\'s"
+
+
 def getBotStatus(status):
     """
     Returns the discord bot status
@@ -244,3 +289,57 @@ def getDiscordColor(color: str):
         'purple': discord.Color.purple()
     }
     return colors.get(color.lower())
+
+
+def camel_case(s: str):
+    s = re.sub(r"(_|-)+", " ", s).title().replace(" ", "")
+    return ''.join([s[0].lower(), s[1:]])
+
+
+def ordinal(n): return f'{n}{"tsnrhtdd"[(n//10%10!=1)*(n%10<4)*n%10::4]}'
+
+def loadCSV(path,delimiter=','):
+  with open(path,'r+', newline='', encoding="utf8") as file:
+      reader = csv.reader(file,delimiter=delimiter)
+      res = list(map(tuple, reader))
+  return res[1:]
+
+def chunks(lst, n):
+    """Yield successive n-sized chunks from lst."""
+    for i in range(0, len(lst), n):
+        yield lst[i:i + n]
+
+
+def hconcat_resize_min(im_list, interpolation=cv2.INTER_CUBIC):
+    h_min = min(im.shape[0] for im in im_list)
+    im_list_resize = [cv2.resize(im, (int(im.shape[1] * h_min / im.shape[0]), h_min), interpolation=interpolation)
+                      for im in im_list]
+    return cv2.hconcat(im_list_resize)
+
+
+def vconcat_resize_min(im_list, interpolation=cv2.INTER_CUBIC):
+    w_min = min(im.shape[1] for im in im_list)
+    im_list_resize = [cv2.resize(im, (w_min, int(im.shape[0] * w_min / im.shape[1])), interpolation=interpolation)
+                      for im in im_list]
+    return cv2.vconcat(im_list_resize)
+
+
+def convert_string_to_bytes(string):
+    bytes = b''
+    for i in string:
+        bytes += struct.pack("B", ord(i))
+    return bytes
+
+
+def binary_str_to_nparray(binstr):
+    imgData = io.BytesIO(binstr)
+    img = Image.open(imgData).convert('RGB')
+    img = np.asarray(img)
+    return img
+
+
+def downloadImgFromUrl(url):
+    r = requests.get(url)
+    if r.status_code == 200:
+        r.raw.decode_content = True
+        return r.content

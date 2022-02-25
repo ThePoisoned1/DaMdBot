@@ -5,20 +5,28 @@ import discord
 from discord.ext import commands
 
 # utils
-from utils import utils
+from utils import utils,databaseUtils
+
 # conf
 import configparser
 
+#cogs
+from cogs.errorhandler import errorhandlercog
+from cogs.help import helpcog
+from cogs.dastuff import dastuffcog
+from cogs.charaSearch import charaSearchCog
 
-# dev/pro
-profile = 'dev'
 
-def addCogs(bot):
-    # bot.add_cog(Cog(bot,*))
+
+def addCogs(bot,conf,con):
+    bot.add_cog(errorhandlercog.CommandErrorHandler(bot,conf['log']['path']))
+    bot.add_cog(helpcog.HelpCog(bot,conf['bot']))
+    bot.add_cog(dastuffcog.DaStuffCog(bot,con,conf))
+    bot.add_cog(charaSearchCog.CharaSearchCog(bot,con))
     pass
 
 
-def startBot(conf):
+def startBot(conf,updateCharas):
     intents = discord.Intents.default()
     intents.members = True
     activity = utils.getBotActivity(
@@ -41,13 +49,13 @@ def startBot(conf):
         # utils.addToLog(ctx.message.created_at, ctx.message.author,
         # ctx.message.author.id, ctx.guild, ctx.guild.id, ctx.message.content)
         return ';' not in ctx.message.content
-
-    addCogs(bot)
+    con = databaseUtils.connectToDb(conf['database']['path'])
+    addCogs(bot,conf,con)
     # start the bot
     bot.run(conf['bot']['token'])
 
 
-def getConf():
+def getConf(profile):
     conf = configparser.ConfigParser()
     pyProfile = os.environ.get('PYTHON_PROFILE', profile)
     conf.read(os.path.join('conf', f'conf-{pyProfile}.conf'))
@@ -55,5 +63,16 @@ def getConf():
 
 
 if __name__ == '__main__':
-    conf = getConf()
-    startBot(conf)
+    import argparse
+    parser = argparse.ArgumentParser(description='Starts the discord bot')
+    parser.add_argument('--update', '-u', action='store_true',
+                        help='Runs a character update in the database')
+    parser.add_argument('-dev', action='store_true',
+                        help='Runs the bot with the development conf')
+    args = parser.parse_args()
+    profile = 'dev' if args.dev else 'pro'
+
+    updateCharas = args.update
+    conf = getConf(profile)
+    startBot(conf, updateCharas)
+

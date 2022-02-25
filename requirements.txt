@@ -1,2 +1,8 @@
-#python -m venv
-pycord==0.1.1
+# python -m venv
+# .\.venv\Scripts\activate
+# pip install -U git+https://github.com/Pycord-Development/pycord
+# pip install -r .\requirements.txt
+opencv-python
+Pillow
+bs4
+requests

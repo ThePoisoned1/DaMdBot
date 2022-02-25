@@ -3,7 +3,10 @@ logs/
 .vscode/
 #./conf
 #*conf
-
+conf/conf-dev.conf
+conf/conf-pro.conf
+./conf/conf-pro.conf
+charaPics/
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
