@@ -23,7 +23,6 @@ class CharaSearchCog(commands.Cog, name="Character Search"):
 
         if isinstance(charaName, (list, tuple)):
             charaName = ' '.join(charaName)
-        print(charaName)
         matches = charaSearchCommands.character_search(self.con, charaName)
         chara = None
         if len(matches) == 1:
@@ -40,7 +39,7 @@ class CharaSearchCog(commands.Cog, name="Character Search"):
                 await utils.send_msg(ctx, msg='Operation canceled')
                 return
             chara = charaSearchCommands.character_search(self.con, msg.content)
-            if chara:
+            if chara and isinstance(chara,(list,tuple)):
                 chara = chara[0]
             else:
                 await utils.send_embed(ctx, utils.errorEmbed('No character found'))
@@ -48,7 +47,6 @@ class CharaSearchCog(commands.Cog, name="Character Search"):
             embed = charaSearchCommands.get_embed_from_chara(chara)
         if len(embed)>1:
             view =EmbedPaginatorView.EmbedPaginatorView(ctx, embed, startPage=0)
-            print(embed)
             await utils.send_embed(ctx, embed=embed[0], view=view)
         else:
             await utils.send_embed(ctx, embed[0])

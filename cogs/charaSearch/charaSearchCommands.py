@@ -10,8 +10,8 @@ def character_search(con, search: str):
     matches = []
     search = search.lower()
     for chara in buffer['charas']:
-        if search == str(chara.id) or search == chara.unitName.lower() or search == ' '.join((chara.charaName,chara.unitName)):
-            return chara
+        if search == str(chara.id) or search == chara.unitName.lower() or search == ' '.join([chara.charaName,chara.unitName]).lower():
+            return [chara]
         if search in chara.unitName.lower() or search in chara.charaName.lower():
             matches.append(chara)
     return matches
@@ -23,12 +23,14 @@ def get_character_pic(charaId,imageFolder):
 
 def get_embed_from_chara(chara:Chara):
     embed = discord.Embed(title=f'{chara.charaName} *{chara.unitName}*')
-    embed.add_field(name='ID',value=str(chara.id))
+    embed.add_field(name='ID',value=str(chara.id),inline=False)
     embed.add_field(name='Character',value=chara.charaName)
     embed.add_field(name='Unit',value=chara.unitName)
-    embed.add_field(name='Rarity',value=chara.rarity)
-    embed.add_field(name='Weapon',value=chara.weapon)
+    embed.add_field(name='Rarity',value=f'{chara.rarity} Star',inline=False)
     embed.add_field(name='Element',value=chara.element)
+    embed.add_field(name='Weapon',value=chara.weapon)
+    embed.add_field(name='Upgradeable',value='Yes' if chara.upgradedStats else 'No',inline=False)
+    embed.add_field(name='Lvl 80 stats',value=f'-**HP**:\t{chara.hp}\n-**MP**:\t{chara.mp}\n-**ATT**:\t{chara.atk}\n-**DEF**:\t{chara.deff}\n-**CRIT**:\t{chara.crit}',inline=False)
     if len(chara.charaPics)==1:
         embed.set_image(url = chara.charaPics[0])
         return [embed]

@@ -47,7 +47,6 @@ class DaStuffCog(commands.Cog, name="DaStuff"):
     @commands.command(name="getUrls", pass_context=True, description="Sends all the characters pngs to a channel and makes a csv")
     @commands.is_owner()
     async def geturls(self, ctx):
-        print('a')
         await startDb.get_chara_pics_url(self.conf['database']['chara_pic_path'],self.bot.get_channel(int(self.conf['database']['pic_channel_id'])),'./urls.csv')
 
 
