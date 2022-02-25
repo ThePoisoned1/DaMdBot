@@ -5,7 +5,7 @@ Source code of the discord bot made for the SAOMD revival proyect
 -Check the gitignore to avoid uploading the bot conf and any other sensitive data
 
 1. Create the bot.
-    If u need help with this step there is a step by step on [Create a bot](./Templates/Create_a_bot.md).
+    If you need help with this step there is a step by step on [Create a bot](./Templates/Create_a_bot.md).
 
 2. Set up the requirements.
     Execute the commented lines in [requirements](./requirements.txt)
@@ -15,7 +15,7 @@ Source code of the discord bot made for the SAOMD revival proyect
     you need to create a conf-pro.conf and a conf-dev.pro, paste all the contents in the [configuration templates](./conf/conf-pro-template.conf) and fill that data with your private values.
 
 4. Start the database.
-    To start the database u have to run the [database starter](dbStarter.py) from the main folder
+    To start the database you have to run the [database starter](dbStarter.py) from the main folder
 
 5. Start the bot.
     To start the bot just run [main.py](main.py) from the main folder
@@ -25,7 +25,7 @@ Source code of the discord bot made for the SAOMD revival proyect
 Trying to keep the code structure as clean as possible the bot is stucturated in cogs. Each cog contains a bundle of commands with the same theme. It's cog is created in a separate folder under the [Cogs folder](./cogs/). Each of this folders contains the Cog file and the commands file. 
 
 1. The Cog File
-    The [Cog File](./cogs/help/helpcog.py) contains the events and methods that are triggered when the command happens. I there is a [Template](./Templates/CogTemplate.py) for it that u can use to help u make new cogs.
+    The [Cog File](./cogs/help/helpcog.py) contains the events and methods that are triggered when the command happens. I there is a [Template](./Templates/CogTemplate.py) for it that you can use to help you make new cogs.
 
 2. Structure for the help command
     The help command is coded to add all the cogs that have any non-owner-only command and all the public commands in them.
